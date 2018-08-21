@@ -6,6 +6,21 @@
 	objectVersion = 50;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		AA554F9E212C5FE800E78ABD /* Aggregate */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = AA554F9F212C5FE900E78ABD /* Build configuration list for PBXAggregateTarget "Aggregate" */;
+			buildPhases = (
+				AA554FA4212C5FF400E78ABD /* CONTINUOUS INTEGRATION */,
+			);
+			dependencies = (
+				AA554FA3212C5FEE00E78ABD /* PBXTargetDependency */,
+			);
+			name = Aggregate;
+			productName = Aggregate;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		AA554D33212C49E700E78ABD /* HBuilderFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = AA554D31212C49E700E78ABD /* HBuilderFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AA554E55212C4A0400E78ABD /* PDRToolSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = AA554D3C212C4A0300E78ABD /* PDRToolSystem.h */; };
@@ -57,6 +72,16 @@
 		AA554F92212C4CFD00E78ABD /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA554F7C212C4CFD00E78ABD /* CoreTelephony.framework */; };
 		AA554F93212C4CFD00E78ABD /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA554F7D212C4CFD00E78ABD /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AA554FA2212C5FEE00E78ABD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA554D25212C49E700E78ABD /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA554D2D212C49E700E78ABD;
+			remoteInfo = HBuilderFramework;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		AA554D2E212C49E700E78ABD /* HBuilderFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HBuilderFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -336,6 +361,9 @@
 					AA554D2D212C49E700E78ABD = {
 						CreatedOnToolsVersion = 9.4.1;
 					};
+					AA554F9E212C5FE800E78ABD = {
+						CreatedOnToolsVersion = 9.4.1;
+					};
 				};
 			};
 			buildConfigurationList = AA554D28212C49E700E78ABD /* Build configuration list for PBXProject "HBuilderFramework" */;
@@ -351,6 +379,7 @@
 			projectRoot = "";
 			targets = (
 				AA554D2D212C49E700E78ABD /* HBuilderFramework */,
+				AA554F9E212C5FE800E78ABD /* Aggregate */,
 			);
 		};
 /* End PBXProject section */
@@ -365,6 +394,23 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		AA554FA4212C5FF400E78ABD /* CONTINUOUS INTEGRATION */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "CONTINUOUS INTEGRATION";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "#!/bin/sh\n#要build的target名\nTARGET_NAME=${PROJECT_NAME}\nif [[ $1 ]]\nthen\nTARGET_NAME=$1\nfi\nUNIVERSAL_OUTPUT_FOLDER=\"${SRCROOT}/Products/\"\n\n#创建输出目录，并删除之前的framework文件\nmkdir -p \"${UNIVERSAL_OUTPUT_FOLDER}\"\nrm -rf \"${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework\"\n\n#分别编译模拟器和真机的Framework\nxcodebuild -target \"${TARGET_NAME}\" ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphoneos BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\" clean build\nxcodebuild -target \"${TARGET_NAME}\" ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphonesimulator BUILD_DIR=\"${BUILD_DIR}\" BUILD_ROOT=\"${BUILD_ROOT}\" clean build\n\n#拷贝framework到univer目录\ncp -R \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${TARGET_NAME}.framework\" \"${UNIVERSAL_OUTPUT_FOLDER}\"\n\n#合并framework，输出最终的framework到build目录\nlipo -create -output \"${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework/${TARGET_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${TARGET_NAME}.framework/${TARGET_NAME}\" \"${BUILD_DIR}/${CONFIGURATION}-iphoneos/${TARGET_NAME}.framework/${TARGET_NAME}\"\n\n#删除编译之后生成的无关的配置文件\ndir_path=\"${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework/\"\nfor file in ls $dir_path\ndo\nif [[ ${file} =~ \".xcconfig\" ]]\nthen\nrm -f \"${dir_path}/${file}\"\nfi\ndone\n\n#判断build文件夹是否存在，存在则删除\nif [ -d \"${SRCROOT}/build\" ]\nthen\nrm -rf \"${SRCROOT}/build\"\nfi\nrm -rf \"${BUILD_DIR}/${CONFIGURATION}-iphonesimulator\" \"${BUILD_DIR}/${CONFIGURATION}-iphoneos\"\n\n#打开合并后的文件夹\nopen \"${UNIVERSAL_OUTPUT_FOLDER}\"";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		AA554D29212C49E700E78ABD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -374,6 +420,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA554FA3212C5FEE00E78ABD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA554D2D212C49E700E78ABD /* HBuilderFramework */;
+			targetProxy = AA554FA2212C5FEE00E78ABD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA554D34212C49E700E78ABD /* Debug */ = {
@@ -430,7 +484,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -521,6 +575,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/HBuilderFramework/Pandora/Libs",
 				);
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = win.thermod.HBuilderFramework;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -564,6 +619,24 @@
 			};
 			name = Release;
 		};
+		AA554FA0212C5FE900E78ABD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = BBCY8DNHJY;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AA554FA1212C5FE900E78ABD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = BBCY8DNHJY;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -581,6 +654,15 @@
 			buildConfigurations = (
 				AA554D37212C49E700E78ABD /* Debug */,
 				AA554D38212C49E700E78ABD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA554F9F212C5FE900E78ABD /* Build configuration list for PBXAggregateTarget "Aggregate" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA554FA0212C5FE900E78ABD /* Debug */,
+				AA554FA1212C5FE900E78ABD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,0 +1,6 @@
+framework module HBuilderFramework {
+  umbrella header "HBuilderFramework.h"
+
+  export *
+  module * { export * }
+}

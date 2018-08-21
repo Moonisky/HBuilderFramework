@@ -33,9 +33,9 @@ Framework 导入是让工程界面最清爽的办法，但是相对来说比较�
 
 您可以前往 [Release 界面](https://github.com/Moonisky/HBuilderFramework/releases)下载我预先提供好的 Framework。
 
-您也可以将本工程克隆至本地，然后去 [SDK 下载界面](http://ask.dcloud.net.cn/article/103)下载最新版本的 iOS SDK，将下载好的 SDK 解压之后，将 SDK 文件夹中的 SDK > Libs 目录，拷贝到该工程的 HBuilderFramework > Pandora 目录下。然后打开此工程，选择对应合适的 Target 进行编译。
+您也可以将本工程克隆至本地，然后去 [SDK 下载界面](http://ask.dcloud.net.cn/article/103)下载最新版本的 iOS SDK，将下载好的 SDK 解压之后，将 SDK 文件夹中的 SDK > Libs 目录，拷贝到该工程的 HBuilderFramework > Pandora 目录下。然后打开此工程，选择 Aggregate Scheme 进行编译。
 
-> 我编写了对应的脚本，保证编译出来的 Framework 能够同时支持模拟器和真机。
+> 我编写了对应的脚本，保证编译出来的 Framework 能够同时支持模拟器和真机。编译完成后会自动打开 Framework 所在的目录。
 
 打开对应 Target 的 General 选项卡，在 Linked Frameworks and Libraries 选项中点击 + 号键。在弹出的框架添加界面中，选择 Add Other…，然后将准备好的 Framework 添加到您的 iOS 工程当中。
 
