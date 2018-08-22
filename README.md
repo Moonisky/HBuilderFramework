@@ -55,4 +55,86 @@ Framework 导入是让工程界面最清爽的办法，但是相对来说比较�
 
 ## 自定义模块集成
 
-待续。
+本工程只是一个简单的示例，只集成了 HBuilder 基础包，因此如果您如果还需要添加其他模块，那么可以很轻松地进行自定义集成。
+
+您只需要根据官方 SDK 的 Feature-iOS.xls 文件，查询您需要引入的模块，然后将对应的静态库和系统动态框架加入到 HBuilderFramework 的 Linked Frameworks and Libraries 选项中即可。
+
+## 自建框架
+
+HBuilderFramework 框架其实非常简单，您也可以自行建立。
+
+通过 Xcode 新建一个 Cocoa Touch Framework，然后输入相关的信息。
+
+随后，将 SDK 当中的 `inc` 目录拖入到框架当中。
+
+为了方便，建议您将 SDK 中的 `Libs` 目录放到工程目录当中，方便寻找和引用。
+
+找到 Build Settings 选项卡，向 Other Linker Flags 中添加 `-ObjC` 标记。
+
+找到框架自带的 `.h` 文件（一般是框架名称），加入以下两句头文件引入语句：
+
+```objective-c
+#import "PDRCore.h"
+#import "PDRToolSystemEx.h"
+```
+
+找到 Build Phases 选项卡，将 `PDRToolSystemEx.h`、`PDRCore.h`、`PDRCoreSettings.h` 和 `PDRCoreDefs.h` 文件从 Project 拖入到 Public 域当中，这样才能够对外暴露使用。
+
+随后，根据官方 SDK 的 Feature-iOS.xls 文件，查询您需要引入的模块，然后将对应的静态库和系统动态框架加入到 HBuilderFramework 的 Linked Frameworks and Libraries 选项中即可。
+
+### 自动打包&合并
+
+上述创建出来的框架只能够打出适用于模拟器或者真机的动态框架包，在真实使用中，我们还需要进行合并。
+
+如果您采用的是*工程引用*的方式使用本框架，那么可以忽略这个操作。
+
+但是如果是直接采用*Framework 导入*的方式使用，那么还需要将生成的两个动态框架包进行合并。但是合并的操作比较麻烦，我们可以采用创建 Aggregate 的方式自动执行 Shell 脚本，快速帮助我们完成打包、合并。
+
+通过 Xcode 创建 Aggreagate Target，然后进入到 Aggregate 的 Build Phases 选项卡，新建一个 Run Script Phase，输入以下内容：
+
+```shell
+#!/bin/sh
+#要 build 的 target 名
+TARGET_NAME=${PROJECT_NAME}
+if [[ $1 ]]
+then
+TARGET_NAME=$1
+fi
+UNIVERSAL_OUTPUT_FOLDER="${SRCROOT}/Products/"
+
+#创建输出目录，并删除之前的 framework 文件
+mkdir -p "${UNIVERSAL_OUTPUT_FOLDER}"
+rm -rf "${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework"
+
+#分别编译模拟器和真机的 Framework
+xcodebuild -target "${TARGET_NAME}" ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphoneos BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_ROOT}" clean build
+xcodebuild -target "${TARGET_NAME}" ONLY_ACTIVE_ARCH=NO -configuration ${CONFIGURATION} -sdk iphonesimulator BUILD_DIR="${BUILD_DIR}" BUILD_ROOT="${BUILD_ROOT}" clean build
+
+#拷贝 framework 到 univer 目录
+cp -R "${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${TARGET_NAME}.framework" "${UNIVERSAL_OUTPUT_FOLDER}"
+
+#合并 framework，输出最终的 framework 到 build 目录
+lipo -create -output "${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework/${TARGET_NAME}" "${BUILD_DIR}/${CONFIGURATION}-iphonesimulator/${TARGET_NAME}.framework/${TARGET_NAME}" "${BUILD_DIR}/${CONFIGURATION}-iphoneos/${TARGET_NAME}.framework/${TARGET_NAME}"
+
+#删除编译之后生成的无关的配置文件
+dir_path="${UNIVERSAL_OUTPUT_FOLDER}/${TARGET_NAME}.framework/"
+for file in ls $dir_path
+do
+if [[ ${file} =~ ".xcconfig" ]]
+then
+rm -f "${dir_path}/${file}"
+fi
+done
+
+#判断 build 文件夹是否存在，存在则删除
+if [ -d "${SRCROOT}/build" ]
+then
+rm -rf "${SRCROOT}/build"
+fi
+rm -rf "${BUILD_DIR}/${CONFIGURATION}-iphonesimulator" "${BUILD_DIR}/${CONFIGURATION}-iphoneos"
+
+#打开合并后的文件夹
+open "${UNIVERSAL_OUTPUT_FOLDER}"
+```
+
+即可完成自动将模拟器和真机的包打出，并自动合并。
